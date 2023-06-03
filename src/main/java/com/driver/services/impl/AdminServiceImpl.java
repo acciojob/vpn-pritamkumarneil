@@ -39,7 +39,7 @@ public class AdminServiceImpl implements AdminService {
     public Admin addServiceProvider(int adminId, String providerName) {
         //add a serviceProvider under the admin and return updated admin
         ServiceProvider serviceProvider=new ServiceProvider();
-        serviceProvider.setProviderName(providerName);
+        serviceProvider.setName(providerName);
         Admin admin=adminRepository1.findById(adminId).get();
         // making relation between admin and serviceProvider
         serviceProvider.setAdmin(admin);
@@ -89,7 +89,7 @@ public class AdminServiceImpl implements AdminService {
         // find the ServiceProvider
         ServiceProvider serviceProvider=serviceProviderRepository1.findById(serviceProviderId).get();
 
-        serviceProvider.getCountries().add(country);
+        serviceProvider.getCountryList().add(country);
         country.setServiceProvider(serviceProvider);
         serviceProviderRepository1.save(serviceProvider);
         return serviceProvider;

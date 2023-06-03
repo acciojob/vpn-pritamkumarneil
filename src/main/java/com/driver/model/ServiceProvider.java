@@ -13,29 +13,29 @@ public class ServiceProvider {
     private int id;
 
     @Column(name = "provide_name")
-    private String providerName;
+    private String name;
 
     // navigational properties
     @ManyToOne
     @JoinColumn
     Admin admin;
     @OneToMany(mappedBy = "serviceProvider",cascade = CascadeType.ALL)
-    List<Connection> connections=new ArrayList<>();
+    List<Connection> connectionList=new ArrayList<>();
 
     @OneToMany(mappedBy="serviceProvider",cascade = CascadeType.ALL)
-    List<Country> countries=new ArrayList<>();
+    List<Country> countryList=new ArrayList<>();
 
-    @ManyToMany(mappedBy = "serviceProviders",cascade = CascadeType.ALL)
-    List<User> users= new ArrayList<>();
+    @ManyToMany(mappedBy = "serviceProviderList",cascade = CascadeType.ALL)
+    List<User> userList= new ArrayList<>();
 
     // getter and setter / constructor
-    public ServiceProvider(int id, String providerName, Admin admin, List<Connection> connections, List<Country> countries, List<User> users) {
+    public ServiceProvider(int id, String name, Admin admin, List<Connection> connections, List<Country> countries, List<User> users) {
         this.id = id;
-        this.providerName = providerName;
+        this.name = name;
         this.admin = admin;
-        this.connections = connections;
-        this.countries = countries;
-        this.users = users;
+        this.connectionList = connections;
+        this.countryList = countries;
+        this.userList = users;
     }
 
     public ServiceProvider() {
@@ -49,12 +49,12 @@ public class ServiceProvider {
         this.id = id;
     }
 
-    public String getProviderName() {
-        return providerName;
+    public String getName() {
+        return name;
     }
 
-    public void setProviderName(String providerName) {
-        this.providerName = providerName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Admin getAdmin() {
@@ -65,27 +65,27 @@ public class ServiceProvider {
         this.admin = admin;
     }
 
-    public List<Connection> getConnections() {
-        return connections;
+    public List<Connection> getConnectionList() {
+        return connectionList;
     }
 
-    public void setConnections(List<Connection> connections) {
-        this.connections = connections;
+    public void setConnectionList(List<Connection> connections) {
+        this.connectionList = connections;
     }
 
-    public List<Country> getCountries() {
-        return countries;
+    public List<Country> getCountryList() {
+        return countryList;
     }
 
-    public void setCountries(List<Country> countries) {
-        this.countries = countries;
+    public void setCountryList(List<Country> countries) {
+        this.countryList = countries;
     }
 
-    public List<User> getUsers() {
-        return users;
+    public List<User> getUserList() {
+        return userList;
     }
 
-    public void setUsers(List<User> users) {
-        this.users = users;
+    public void setUserList(List<User> users) {
+        this.userList = users;
     }
 }

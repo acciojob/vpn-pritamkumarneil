@@ -41,10 +41,10 @@ public class ConnectionServiceImpl implements ConnectionService {
 
         User user =userRepository2.findById(userId).get();
         //1. If the user is already connected to any service provider, throw "Already connected" exception.
-        if(user.isConnected()){
+        if(user.getConnected()){
             throw new AlreadyConnectedException("Already connected");
         }
-        Country country=user.getCountry();
+        Country country=user.getOriginalCountry();
         // 2. Else if the countryName corresponds to the original country of the user, do nothing.
         // This means that the user wants to connect to its original country, for which we do not require a connection.
         // Thus, return the user as it is.
@@ -55,14 +55,14 @@ public class ConnectionServiceImpl implements ConnectionService {
         //If the connection can not be made (As user does not have a serviceProvider or serviceProvider does not have given
         // country, throw "Unable to connect" exception.
 
-        List<ServiceProvider> userServiceProviders=user.getServiceProviders();
+        List<ServiceProvider> userServiceProviders=user.getServiceProviderList();
         if(userServiceProviders==null||userServiceProviders.size()==0){
             throw new UnableToConnectException("Unable to connect");
         }
         boolean providerNotInCountry=false;
         ServiceProvider currentServiceProvider=null;
         for(ServiceProvider provider: userServiceProviders){
-            for(Country providerCountry: provider.getCountries()){
+            for(Country providerCountry: provider.getCountryList()){
                 if(providerCountry.getCountryName().toString().equals(countryName)){
                     providerNotInCountry=true;
                     if(currentServiceProvider==null){
@@ -83,15 +83,15 @@ public class ConnectionServiceImpl implements ConnectionService {
         Connection connection=new Connection();
 
         connection.setServiceProvider(currentServiceProvider);
-        currentServiceProvider.getConnections().add(connection);
+        currentServiceProvider.getConnectionList().add(connection);
 
         ServiceProvider savedServiceProvider=serviceProviderRepository2.save(currentServiceProvider);
-        Connection savedConnection=savedServiceProvider.getConnections().get(savedServiceProvider.getConnections().size()-1);
+        Connection savedConnection=savedServiceProvider.getConnectionList().get(savedServiceProvider.getConnectionList().size()-1);
 
         user.setMaskedIp(country.getCode()+"."+savedServiceProvider.getId()+"."+userId);
         user.setConnected(true);
         savedConnection.setUser(user);
-        user.getConnections().add(savedConnection);
+        user.getConnectionList().add(savedConnection);
         userRepository2.save(user);
 
         return user;
@@ -103,17 +103,17 @@ public class ConnectionServiceImpl implements ConnectionService {
         //Else, disconnect from vpn, make masked Ip as null, update relevant attributes and return updated user.
 
         User user=userRepository2.findById(userId).get();
-        if(!user.isConnected()){
+        if(!user.getConnected()){
             throw new AlreadyDisconnectedException("Already disconnected");
         }
         user.setMaskedIp(null);
         user.setConnected(false);
-        for(Connection connection: user.getConnections()){
+        for(Connection connection: user.getConnectionList()){
             connection.setServiceProvider(null);
             connection.setUser(null);
-            user.getConnections().remove(connection);
+            user.getConnectionList().remove(connection);
         }
-        user.setConnections(new ArrayList<>());
+        user.setConnectionList(new ArrayList<>());
         return userRepository2.save(user);
     }
     @Override
@@ -135,19 +135,19 @@ public class ConnectionServiceImpl implements ConnectionService {
         //If communication can not be established due to any reason, throw "Cannot establish communication" exception
 
         User receiver=userRepository2.findById(receiverId).get();
-        Country receiverCountry=receiver.getCountry();
+        Country receiverCountry=receiver.getOriginalCountry();
 
         User sender=userRepository2.findById(senderId).get();
-        Country senderCountry=sender.getCountry();
+        Country senderCountry=sender.getOriginalCountry();
 
-        if(!receiver.isConnected() && receiverCountry.getCountryName().equals(senderCountry.getCountryName())){
+        if(!receiver.getConnected() && receiverCountry.getCountryName().equals(senderCountry.getCountryName())){
             return sender;
         }
 
         //The sender is initially not connected to any vpn. If the sender's original country does not match
         // receiver's current country,
-        for(Connection connection: receiver.getConnections()){
-            for(Country country: connection.getServiceProvider().getCountries()){
+        for(Connection connection: receiver.getConnectionList()){
+            for(Country country: connection.getServiceProvider().getCountryList()){
                 if(senderCountry.getCountryName().equals(country.getCountryName())){
                     return sender;
                 }
@@ -157,13 +157,13 @@ public class ConnectionServiceImpl implements ConnectionService {
         // connect using the service provider having smallest id
 
         // here we cant get new connection because sender is not subscribed to any provider
-        if(sender.getServiceProviders().size()==0){
+        if(sender.getServiceProviderList().size()==0){
             throw new ConnectionFailException("Cannot establish communication");
         }
         ServiceProvider commonProvider=null;
         boolean foundCommonProvider=false;
-        for(ServiceProvider senderProvider: sender.getServiceProviders()){
-            for(Connection receiverConnection: receiver.getConnections()){
+        for(ServiceProvider senderProvider: sender.getServiceProviderList()){
+            for(Connection receiverConnection: receiver.getConnectionList()){
                 if(senderProvider.equals(receiverConnection.getServiceProvider())){
                     foundCommonProvider=true;
                     if(commonProvider==null){
@@ -181,11 +181,11 @@ public class ConnectionServiceImpl implements ConnectionService {
 
         Connection connection=new Connection();
         connection.setServiceProvider(commonProvider);
-        commonProvider.getConnections().add(connection);
+        commonProvider.getConnectionList().add(connection);
         ServiceProvider savedCommonProvider= serviceProviderRepository2.save(commonProvider);
 
-        Connection savedConnection=savedCommonProvider.getConnections().get(savedCommonProvider.getConnections().size()-1);
-        sender.getConnections().add(savedConnection);
+        Connection savedConnection=savedCommonProvider.getConnectionList().get(savedCommonProvider.getConnectionList().size()-1);
+        sender.getConnectionList().add(savedConnection);
         savedConnection.setUser(sender);
         userRepository2.save(sender);
         return sender;

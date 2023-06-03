@@ -60,7 +60,7 @@ public class UserServiceImpl implements UserService {
         User user= new User();
         user.setUsername(username);
         user.setPassword(password);
-        user.setCountry(country);
+        user.setOriginalCountry(country);
         country.setUser(user);
         User savedUser=userRepository3.save(user);
         savedUser.setOriginalIp(country.getCode()+"."+savedUser.getId());
@@ -77,8 +77,8 @@ public class UserServiceImpl implements UserService {
         ServiceProvider serviceProvider=serviceProviderRepository3.findById(serviceProviderId).get();
         User user= userRepository3.findById(userId).get();
 
-        serviceProvider.getUsers().add(user);
-        user.getServiceProviders().add(serviceProvider);
+        serviceProvider.getUserList().add(user);
+        user.getServiceProviderList().add(serviceProvider);
 
         serviceProviderRepository3.save(serviceProvider);
 
