@@ -110,7 +110,7 @@ public class ConnectionServiceImpl implements ConnectionService {
         }
         user.setMaskedIp(null);
         user.setConnected(false);
-        List<Integer> connectionIds=new ArrayList<>();
+//        List<Integer> connectionIds=new ArrayList<>();
 //        for(Connection connection: user.getConnectionList()){
 //            connection.setServiceProvider(null);
 //            connection.setUser(null);
@@ -121,7 +121,7 @@ public class ConnectionServiceImpl implements ConnectionService {
 //            connectionRepository2.deleteById(id);
 //        }
 
-        user.setConnectionList(new ArrayList<>());
+//        user.setConnectionList(new ArrayList<>());
         return userRepository2.save(user);
     }
     @Override
@@ -142,61 +142,103 @@ public class ConnectionServiceImpl implements ConnectionService {
 
         //If communication can not be established due to any reason, throw "Cannot establish communication" exception
 
-        User receiver=userRepository2.findById(receiverId).get();
-        Country receiverCountry=receiver.getOriginalCountry();
+//        User receiver=userRepository2.findById(receiverId).get();
+//        Country receiverCountry=receiver.getOriginalCountry();
+//
+//        User sender=userRepository2.findById(senderId).get();
+//        Country senderCountry=sender.getOriginalCountry();
+//
+//        if(!receiver.getConnected() && receiverCountry.getCountryName().equals(senderCountry.getCountryName())){
+//            return sender;
+//        }
+//
+//        //The sender is initially not connected to any vpn. If the sender's original country does not match
+//        // receiver's current country,
+//        for(Connection connection: receiver.getConnectionList()){
+//            for(Country country: connection.getServiceProvider().getCountryList()){
+//                if(senderCountry.getCountryName().equals(country.getCountryName())){
+//                    return sender;
+//                }
+//            }
+//        }
+//        // we need to connect the sender to a suitable vpn. If there are multiple options,
+//        // connect using the service provider having smallest id
+//
+//        // here we cant get new connection because sender is not subscribed to any provider
+//        if(sender.getServiceProviderList().size()==0){
+//            throw new ConnectionFailException("Cannot establish communication");
+//        }
+//        ServiceProvider commonProvider=null;
+//
+//        for(ServiceProvider senderProvider: sender.getServiceProviderList()){
+//            for(Connection receiverConnection: receiver.getConnectionList()){
+//                if(senderProvider.equals(receiverConnection.getServiceProvider())){
+//
+//                    if(commonProvider==null){
+//                        commonProvider=senderProvider;
+//                    }
+//                    else if(commonProvider.getId()>senderProvider.getId()){
+//                        commonProvider=senderProvider;
+//                    }
+//                }
+//            }
+//        }
+//        if(commonProvider==null){
+//            throw new ConnectionFailException("Cannot establish communication");
+//        }
+//
+//        Connection connection=new Connection();
+//        connection.setServiceProvider(commonProvider);
+//        commonProvider.getConnectionList().add(connection);
+//        ServiceProvider savedCommonProvider= serviceProviderRepository2.save(commonProvider);
+//
+//        Connection savedConnection=savedCommonProvider.getConnectionList().get(savedCommonProvider.getConnectionList().size()-1);
+//        sender.getConnectionList().add(savedConnection);
+//        sender.setConnected(true);
+//        savedConnection.setUser(sender);
+//        userRepository2.save(sender);
+//        return sender;
 
-        User sender=userRepository2.findById(senderId).get();
-        Country senderCountry=sender.getOriginalCountry();
 
-        if(!receiver.getConnected() && receiverCountry.getCountryName().equals(senderCountry.getCountryName())){
+
+
+
+
+
+
+        User sender = userRepository2.findById(senderId).get();
+        User receiver = userRepository2.findById(receiverId).get();
+        if (receiver.getMaskedIp()!=null){
+            String maskedIp = receiver.getMaskedIp();
+            String code = maskedIp.substring(0,3);
+            code = code.toUpperCase();
+            if (code.equals(sender.getOriginalCountry().getCode())) return sender;
+            String countryName = "";
+            CountryName[] countryNames = CountryName.values();
+            for(CountryName countryName1 : countryNames){
+                if (countryName1.toCode().toString().equals(code)){
+                    countryName = countryName1.toString();
+                }
+            }
+            try {
+                sender = connect(senderId,countryName);
+            }catch (Exception e){
+                throw new Exception("Cannot establish communication");
+            }
+            if (!sender.getConnected()){
+                throw new Exception("Cannot establish communication");
+            }
             return sender;
         }
-
-        //The sender is initially not connected to any vpn. If the sender's original country does not match
-        // receiver's current country,
-        for(Connection connection: receiver.getConnectionList()){
-            for(Country country: connection.getServiceProvider().getCountryList()){
-                if(senderCountry.getCountryName().equals(country.getCountryName())){
-                    return sender;
-                }
-            }
+        if (sender.getOriginalCountry().equals(receiver.getOriginalCountry())){
+            return sender;
         }
-        // we need to connect the sender to a suitable vpn. If there are multiple options,
-        // connect using the service provider having smallest id
-
-        // here we cant get new connection because sender is not subscribed to any provider
-        if(sender.getServiceProviderList().size()==0){
-            throw new ConnectionFailException("Cannot establish communication");
+        String countryName = receiver.getOriginalCountry().getCountryName().toString();
+        try {
+            sender = connect(senderId,countryName);
+        }catch (Exception e){
+            if (!sender.getConnected()) throw new Exception("Cannot establish communication");
         }
-        ServiceProvider commonProvider=null;
-
-        for(ServiceProvider senderProvider: sender.getServiceProviderList()){
-            for(Connection receiverConnection: receiver.getConnectionList()){
-                if(senderProvider.equals(receiverConnection.getServiceProvider())){
-
-                    if(commonProvider==null){
-                        commonProvider=senderProvider;
-                    }
-                    else if(commonProvider.getId()>senderProvider.getId()){
-                        commonProvider=senderProvider;
-                    }
-                }
-            }
-        }
-        if(commonProvider==null){
-            throw new ConnectionFailException("Cannot establish communication");
-        }
-
-        Connection connection=new Connection();
-        connection.setServiceProvider(commonProvider);
-        commonProvider.getConnectionList().add(connection);
-        ServiceProvider savedCommonProvider= serviceProviderRepository2.save(commonProvider);
-
-        Connection savedConnection=savedCommonProvider.getConnectionList().get(savedCommonProvider.getConnectionList().size()-1);
-        sender.getConnectionList().add(savedConnection);
-        sender.setConnected(true);
-        savedConnection.setUser(sender);
-        userRepository2.save(sender);
         return sender;
     }
 }
