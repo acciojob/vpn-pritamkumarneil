@@ -26,7 +26,7 @@ public class ServiceProvider {
     List<Country> countryList=new ArrayList<>();
 
     @ManyToMany(mappedBy = "serviceProviderList",cascade = CascadeType.ALL)
-    List<User> userList= new ArrayList<>();
+    List<User> users= new ArrayList<>();
 
     // getter and setter / constructor
     public ServiceProvider(int id, String name, Admin admin, List<Connection> connections, List<Country> countries, List<User> users) {
@@ -35,7 +35,7 @@ public class ServiceProvider {
         this.admin = admin;
         this.connectionList = connections;
         this.countryList = countries;
-        this.userList = users;
+        this.users = users;
     }
 
     public ServiceProvider() {
@@ -82,10 +82,10 @@ public class ServiceProvider {
     }
 
     public List<User> getUsers() {
-        return userList;
+        return users;
     }
 
     public void setUsers(List<User> users) {
-        this.userList = users;
+        this.users = users;
     }
 }

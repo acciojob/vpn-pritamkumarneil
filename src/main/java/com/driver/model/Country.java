@@ -20,6 +20,7 @@ public class Country{
     ServiceProvider serviceProvider;
 
     @OneToOne
+    @JoinColumn
     User user;
 
     public Country(int id, CountryName countryName, String code, ServiceProvider serviceProvider, User user) {

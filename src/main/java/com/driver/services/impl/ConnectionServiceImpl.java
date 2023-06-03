@@ -67,9 +67,11 @@ public class ConnectionServiceImpl implements ConnectionService {
                     providerNotInCountry=true;
                     if(currentServiceProvider==null){
                         currentServiceProvider=provider;
+                        country=providerCountry;
                     }
                     else if (currentServiceProvider.getId()>provider.getId()){
                         currentServiceProvider=provider;
+                        country=providerCountry;
                     }
                 }
             }
