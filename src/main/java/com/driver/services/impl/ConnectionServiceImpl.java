@@ -108,11 +108,17 @@ public class ConnectionServiceImpl implements ConnectionService {
         }
         user.setMaskedIp(null);
         user.setConnected(false);
-        for(Connection connection: user.getConnectionList()){
-            connection.setServiceProvider(null);
-            connection.setUser(null);
-            user.getConnectionList().remove(connection);
-        }
+        List<Integer> connectionIds=new ArrayList<>();
+//        for(Connection connection: user.getConnectionList()){
+//            connection.setServiceProvider(null);
+//            connection.setUser(null);
+//            connectionIds.add(connection.getId());
+////            user.getConnectionList().remove(connection);
+//        }
+//        for(int id:connectionIds){
+//            connectionRepository2.deleteById(id);
+//        }
+
         user.setConnectionList(new ArrayList<>());
         return userRepository2.save(user);
     }
@@ -161,11 +167,11 @@ public class ConnectionServiceImpl implements ConnectionService {
             throw new ConnectionFailException("Cannot establish communication");
         }
         ServiceProvider commonProvider=null;
-        boolean foundCommonProvider=false;
+
         for(ServiceProvider senderProvider: sender.getServiceProviderList()){
             for(Connection receiverConnection: receiver.getConnectionList()){
                 if(senderProvider.equals(receiverConnection.getServiceProvider())){
-                    foundCommonProvider=true;
+
                     if(commonProvider==null){
                         commonProvider=senderProvider;
                     }
@@ -175,7 +181,7 @@ public class ConnectionServiceImpl implements ConnectionService {
                 }
             }
         }
-        if(!foundCommonProvider){
+        if(commonProvider==null){
             throw new ConnectionFailException("Cannot establish communication");
         }
 
@@ -186,6 +192,7 @@ public class ConnectionServiceImpl implements ConnectionService {
 
         Connection savedConnection=savedCommonProvider.getConnectionList().get(savedCommonProvider.getConnectionList().size()-1);
         sender.getConnectionList().add(savedConnection);
+        sender.setConnected(true);
         savedConnection.setUser(sender);
         userRepository2.save(sender);
         return sender;

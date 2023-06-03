@@ -14,7 +14,7 @@ public class User {
     private String password;
     private String originalIp;
     private String maskedIp=null;
-    private Boolean connected;
+    private boolean connected;
 
     // navigational properties
     @ManyToMany
