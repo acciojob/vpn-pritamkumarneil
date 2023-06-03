@@ -81,11 +81,11 @@ public class ServiceProvider {
         this.countryList = countries;
     }
 
-    public List<User> getUserList() {
+    public List<User> getUsers() {
         return userList;
     }
 
-    public void setUserList(List<User> users) {
+    public void setUsers(List<User> users) {
         this.userList = users;
     }
 }
